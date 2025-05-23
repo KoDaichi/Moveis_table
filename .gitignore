@@ -1,0 +1,3 @@
+# test & trashディレクトリを無視
+/test/
+/trash/
