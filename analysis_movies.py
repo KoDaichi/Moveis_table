@@ -1,5 +1,6 @@
 import pandas as pd
 import re
+import textwrap
 from weasyprint import HTML
 
 # 追加機能
@@ -7,10 +8,19 @@ from weasyprint import HTML
 # ・評価の色付け
 # ・俳優名カウント：カウントが同じ場合に人が交互になってしまう、ランキングなっている名前を太字に
 
+#改行挿入関数
+def wrap_text(text, width=16):
+    if pd.isna(text):
+        return ""
+    return '\n'.join(textwrap.wrap(str(text), width))
+
+
 class Analysis_Movie:
     def __init__(self, csv_file):
         self.df = pd.read_csv(csv_file)
+        # self.df["映画名"] = self.df["映画名"].apply(lambda x: wrap_text(x, width=16).replace('\n', '<br>'))
         # print(self.df)
+
 
     def sort(self, target_rows : list):
         if "映画名" in target_rows:
@@ -23,6 +33,7 @@ class Analysis_Movie:
                 'クライム', 
                 'スリラー',
                 'ミステリー', 
+                'ミュージカル', 
                 'ホラー', 
                 '戦争', 
                 '史実', 
@@ -71,6 +82,7 @@ class Analysis_Movie:
             'クライム': '#4169E1',   # royalblue
             'スリラー': '#228B22',   # forestgreen
             'ミステリー': '#DDA0DD',     # plum
+            'ミュージカル': '#DDA0DD',     # plum
             'ホラー': '#808080',       # grey
             '戦争': '#D3D3D3',       # lightgrey
             '史実': '#D3D3D3',       # lightgrey
