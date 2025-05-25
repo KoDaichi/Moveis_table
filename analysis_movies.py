@@ -23,56 +23,54 @@ class Analysis_Movie:
 
 
     def sort(self, target_rows : list):
-        if "映画名" in target_rows:
-            self.df.sort_values(by="映画名", ascending=True, inplace=True)
+        while target_rows:
+            if target_rows[0] == "映画名":
+                self.df.sort_values(by="映画名", ascending=True, inplace=True)
+            elif target_rows[0] == "ジャンル":
+                genre_order = [
+                    'アクション', 
+                    '西部劇', 
+                    'クライム', 
+                    'スリラー',
+                    'ミステリー', 
+                    'ミュージカル', 
+                    'ホラー', 
+                    '戦争', 
+                    '史実', 
+                    'ドラマ', 
+                    'ロマンス',
+                    'SF', 
+                    'ファンタジー',
+                    'コメディ', 
+                ]
+                self.df['ジャンル'] = pd.Categorical(self.df['ジャンル'], categories=genre_order, ordered=True)
+                self.df.sort_values(by='ジャンル', ascending=True, inplace=True)
+            elif target_rows[0] == "評価":
+                self.df.sort_values(by="評価", ascending=False, inplace=True)
+            elif target_rows[0] == "年代":
+                self.df.sort_values(by="年代", ascending=True, inplace=True)
+            elif target_rows[0] == "監督名":
+                director_counts = self.df['監督名'].value_counts()
+                self.df['tmp_cnt'] = self.df['監督名'].map(director_counts)
+                self.df.sort_values(by=['tmp_cnt', '監督名'], ascending=[False, True], inplace=True)
+                self.df.drop(columns='tmp_cnt', inplace=True)
+            elif target_rows[0] == "俳優名":
+                all_actors = self.df['俳優名'].dropna().str.split(',').explode().str.strip()
+                actor_counts = all_actors.value_counts()
 
-        if "ジャンル" in target_rows:
-            genre_order = [
-                'アクション', 
-                '西部劇', 
-                'クライム', 
-                'スリラー',
-                'ミステリー', 
-                'ミュージカル', 
-                'ホラー', 
-                '戦争', 
-                '史実', 
-                'ドラマ', 
-                'ロマンス',
-                'SF', 
-                'ファンタジー',
-                'コメディ', 
-            ]
-            self.df['ジャンル'] = pd.Categorical(self.df['ジャンル'], categories=genre_order, ordered=True)
-            self.df.sort_values(by='ジャンル', ascending=True, inplace=True)
+                # 各行に含まれる俳優の最大頻度を割り当て
+                def get_max_count(actor_string):
+                    if pd.isna(actor_string):
+                        return 0
+                    actor_list = re.split(r'[,]', actor_string)
+                    actor_list = [a.strip() for a in actor_list]
+                    return max(actor_counts.get(actor, 0) for actor in actor_list)
 
-        if "評価" in target_rows:
-            self.df.sort_values(by="評価", ascending=True, inplace=True)
+                self.df['tmp_cnt'] = self.df['俳優名'].apply(get_max_count)
+                self.df.sort_values(by=['tmp_cnt', '俳優名'], ascending=[False, True], inplace=True)
+                self.df.drop(columns='tmp_cnt', inplace=True)
 
-        if "年代" in target_rows:
-            self.df.sort_values(by="年代", ascending=True, inplace=True)
-
-        if "監督名" in target_rows:
-            actor_counts = self.df['監督名'].value_counts()
-            self.df['tmp_cnt'] = self.df['監督名'].map(actor_counts)
-            self.df.sort_values(by='tmp_cnt', ascending=False, inplace=True)
-            self.df.drop(columns='tmp_cnt', inplace=True)
-
-        if "俳優名" in target_rows:
-            all_actors = self.df['俳優名'].dropna().str.split(',').explode().str.strip()
-            actor_counts = all_actors.value_counts()
-
-            # 各行に含まれる俳優の最大頻度を割り当て
-            def get_max_count(actor_string):
-                if pd.isna(actor_string):
-                    return 0
-                actor_list = re.split(r'[,]', actor_string)
-                actor_list = [a.strip() for a in actor_list]
-                return max(actor_counts.get(actor, 0) for actor in actor_list)
-
-            self.df['tmp_cnt'] = self.df['俳優名'].apply(get_max_count)
-            self.df.sort_values(by='tmp_cnt', ascending=False, inplace=True)
-            self.df.drop(columns='tmp_cnt', inplace=True)
+            target_rows.pop(0)
 
 
     def _highlight_genre(self, genre):
@@ -147,6 +145,7 @@ class Analysis_Movie:
 
 if __name__ == "__main__":
     am = Analysis_Movie("movies.csv")  # 映画データのCSVファイル名
-    # am.sort(['ジャンル', '年代'])
+    am.sort(['年代', 'ジャンル'])
+    # am.sort(['ジャンル'])
     am.export_pdf_with_genre_colors()
 
