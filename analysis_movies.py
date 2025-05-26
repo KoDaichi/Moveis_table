@@ -145,7 +145,7 @@ class Analysis_Movie:
 
 if __name__ == "__main__":
     am = Analysis_Movie("movies.csv")  # 映画データのCSVファイル名
-    am.sort(['年代', 'ジャンル'])
+    am.sort(['評価'])
     # am.sort(['ジャンル'])
     am.export_pdf_with_genre_colors()
 
